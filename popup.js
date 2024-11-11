@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
       messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
   
       if (typeof message === 'string') {
-        messageDiv.textContent = message;
+        messageDiv.innerHTML = formatMessage(message);
       } else {
         messageDiv.innerHTML = message;
       }
@@ -26,6 +26,23 @@ document.addEventListener('DOMContentLoaded', function() {
       return loadingDiv;
     }
   
+    function formatMessage(message) {
+        const formattedMessage = message
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')                 // H3 header
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')                  // H2 header
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')                   // H1 header
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')       // Bold
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')                   // Italics
+            .replace(/^- (.+)$/gm, '<li>$1</li>')                 // List item
+            .replace(/<\/ul><ul>/g, '</ul><br><ul>')             // Ensure spacing between list sections
+            .replace(/<\/li><li>/g, '</li><br><li>');
+
+         
+        
+        return formattedMessage; // Return formatted HTML content for rendering
+    }
+
+
     async function handleQuestion(question) {
       addMessage(question, true);
       const loadingDiv = showLoading();
