@@ -14,6 +14,10 @@
   "background": {
     "service_worker": "background.js"
   },
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "content_scripts": [{
     "matches": ["<all_urls>"],
     "js": ["content.js"]
@@ -22,4 +26,5 @@
     "model": "gemini-pro",
     "api_key": "YOUR_API_KEY"
   }
+  
 }

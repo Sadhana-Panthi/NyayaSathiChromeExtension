@@ -1,85 +1,76 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const chatContainer = document.getElementById('chatContainer');
-  const userInput = document.getElementById('userInput');
-  const sendButton = document.getElementById('send');
-  const summarizeButton = document.getElementById('summarize');
-  const translateButton = document.getElementById('translate');
+  const chatBox = document.getElementById('chatBox');
+  const questionInput = document.getElementById('questionInput');
+  const sendButton = document.getElementById('sendButton');
 
-  async function handleUserInput(input) {
-    try {
-      appendMessage('user', input);
+  function addMessage(message, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
       
-      // Show loading state
-      const loadingMessage = appendMessage('system', 'Thinking...');
-      
-      const response = await chrome.runtime.sendMessage({
-        action: 'generateContent',
-        prompt: input
-      });
-      
-      // Remove loading message
-      loadingMessage.remove();
-      
-      if (response.error) {
-        appendMessage('system', 'Sorry, there was an error: ' + response.error);
+      if (!isUser) {
+          const formattedMessage = message
+              .replace(/Answer:/g, '<strong>Answer:</strong>')
+              .replace(/Relevant Laws and Regulations:/g, '<strong>Relevant Laws and Regulations:</strong>')
+              .replace(/Practical Steps or Resources:/g, '<strong>Practical Steps or Resources:</strong>')
+              .replace(/Emergency Contacts:/g, '<strong>Emergency Contacts:</strong>');
+          messageDiv.innerHTML = formattedMessage;
       } else {
-        appendMessage('assistant', response.text);
+          messageDiv.textContent = message;
       }
-    } catch (error) {
-      console.error('Error:', error);
-      appendMessage('system', 'Sorry, there was an error processing your request.');
-    }
+      
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  function appendMessage(sender, text) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    messageDiv.textContent = text;
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    return messageDiv;
+  function showLoading() {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'message bot-message loading';
+      loadingDiv.textContent = 'Typing...';
+      chatBox.appendChild(loadingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return loadingDiv;
+  }
+
+  async function handleQuestion(question) {
+      addMessage(question, true);
+      const loadingDiv = showLoading();
+
+      try {
+          const response = await chrome.runtime.sendMessage({
+              action: 'generateContent',
+              prompt: question
+          });
+
+          loadingDiv.remove();
+          addMessage(response.text || 'Sorry, I could not generate a response.');
+      } catch (error) {
+          loadingDiv.remove();
+          addMessage('Sorry, there was an error processing your question.');
+          console.error('Error:', error);
+      }
   }
 
   sendButton.addEventListener('click', () => {
-    const input = userInput.value.trim();
-    if (input) {
-      handleUserInput(input);
-      userInput.value = '';
-    }
-  });
-
-  userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      sendButton.click();
-    }
-  });
-
-  summarizeButton.addEventListener('click', async () => {
-    try {
-      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-      
-      // Show loading state
-      const loadingMessage = appendMessage('system', 'Summarizing page...');
-      
-      // Get page content
-      const response = await chrome.tabs.sendMessage(tab.id, {action: "getPageContent"});
-      
-      if (response && response.content) {
-        const summary = await chrome.runtime.sendMessage({
-          action: 'summarize',
-          text: response.content
-        });
-        
-        loadingMessage.remove();
-        appendMessage('assistant', 'Page Summary:\n' + summary.text);
+      const question = questionInput.value.trim();
+      if (question) {
+          handleQuestion(question);
+          questionInput.value = '';
       }
-    } catch (error) {
-      console.error('Error:', error);
-      appendMessage('system', 'Unable to summarize the page. Make sure you are on a readable webpage.');
-    }
   });
 
-  translateButton.addEventListener('click', async () => {
-    appendMessage('system', 'Translation feature coming soon!');
+  questionInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+          sendButton.click();
+      }
   });
+
+  document.querySelectorAll('.suggestion').forEach(suggestion => {
+      suggestion.addEventListener('click', () => {
+          const question = suggestion.dataset.question;
+          handleQuestion(question);
+      });
+  });
+
+  // Initial welcome message
+  addMessage("👋 नमस्ते! I'm your Women's Rights Assistant. How can I assist you today?");
 });
