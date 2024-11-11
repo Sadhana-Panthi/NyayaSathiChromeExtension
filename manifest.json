@@ -18,13 +18,10 @@
     "48": "icon.png",
     "128": "icon.png"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["content.js"]
-  }],
-  "generative_ai": {
-    "model": "gemini-pro",
-    "api_key": "YOUR_API_KEY"
-  }
-  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }
