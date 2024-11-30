@@ -19,7 +19,7 @@ In many parts of the world, women and girls don’t always know their rights or 
 
 ## Demo
 
-<img src="ss1.png" alt="first image" width="600"> 
+<img src="ss.png" alt="first image" width="600"> 
 
 Nyaya-Sathi demo [here](https://youtu.be/5RDBKImLISM)
 
